@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Quiz App</title>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background: #f2f6fb;
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+    }
+
+    .card {
+        margin-top: 40px;
+        background: #fff;
+        padding: 30px;
+        width: 600px;
+        border-radius: 12px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+
+    h1, h2 {
+        color: #1d8fe1;
+        margin-bottom: 15px;
+    }
+
+    input {
+        width: 70%;
+        padding: 12px;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+    }
+
+    button {
+        padding: 10px 20px;
+        background: #1d8fe1;
+        border: none;
+        color: white;
+        border-radius: 6px;
+        cursor: pointer;
+        margin: 8px;
+        font-size: 15px;
+    }
+
+    button:hover {
+        background: #0f6fb8;
+    }
+
+    .category-btn {
+        width: 45%;
+        background: white;
+        color: #1d8fe1;
+        border: 2px solid #1d8fe1;
+    }
+
+    .category-btn:hover {
+        background: #e4f4ff;
+    }
+
+    /* QUIZ UI */
+
+    .quiz-top {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        font-size: 18px;
+        font-weight: bold;
+        color: #1d8fe1;
+    }
+
+    .question-box {
+        padding: 20px;
+        background: #f8fbff;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #d6eaff;
+    }
+
+    .option-btn {
+        width: 100%;
+        padding: 12px;
+        margin: 8px 0;
+        border-radius: 8px;
+        background: white;
+        border: 2px solid #1d8fe1;
+        color: #1d8fe1;
+    }
+
+    .option-btn:hover {
+        background: #e6f3ff;
+    }
+
+    .result-line {
+        text-align: left;
+        font-size: 18px;
+        margin: 8px 0;
+    }
+</style>
+</head>
+
+<body>
+
+<!-- HOME PAGE -->
+<div class="card" id="homePage">
+    <img src="https://static.testbook.com/resources/images/logo.svg" width="110" />
+
+    <h1>Hello user!</h1>
+    <p>Enter your name to continue the quiz.</p>
+
+    <input type="text" id="userName" placeholder="ENTER YOUR NAME...">
+    <button onclick="enterUser()">ENTER</button>
+
+    <hr>
+
+    <h2>Select Category</h2>
+    <button class="category-btn" onclick="startQuiz('pipes')">Pipes And Cisterns</button>
+    <button class="category-btn" onclick="startQuiz('prob')">Probability</button>
+    <button class="category-btn" onclick="startQuiz('age')">Problem On Ages</button>
+    <button class="category-btn" onclick="startQuiz('profit')">Profit And Loss</button>
+</div>
+
+
+<!-- QUIZ PAGE -->
+<div class="card" id="quizPage" style="display:none;">
+    <div class="quiz-top">
+        <div id="timer">Time: 0s</div>
+        <div id="scoreBox">Score: 0</div>
+    </div>
+
+    <h2 id="catTitle"></h2>
+
+    <div class="question-box">
+        <h3 id="qNo"></h3>
+        <p id="questionText"></p>
+    </div>
+
+    <div id="options"></div>
+
+    <button onclick="nextQ()">Next Question</button>
+</div>
+
+
+<!-- RESULT PAGE -->
+<div class="card" id="resultPage" style="display:none;">
+    <h1>Quiz Result</h1>
+
+    <div class="result-line"><b>Name:</b> <span id="rName"></span></div>
+    <div class="result-line"><b>Total Time Taken:</b> <span id="rTime"></span> seconds</div>
+    <div class="result-line"><b>Total Questions:</b> 10</div>
+    <div class="result-line"><b>Attempt:</b> <span id="rAttempt"></span></div>
+    <div class="result-line"><b>Correct:</b> <span id="rCorrect"></span></div>
+    <div class="result-line"><b>Wrong:</b> <span id="rWrong"></span></div>
+    <div class="result-line"><b>Percentage:</b> <span id="rPercent"></span>%</div>
+
+    <br>
+    <button onclick="location.reload()">Start Again</button>
+    <button onclick="location.reload()">Go To Home</button>
+</div>
+
+
+<script>
+let username = "";
+let category = "";
+let qIndex = 0;
+let score = 0;
+let attempt = 0;
+let correct = 0;
+let wrong = 0;
+let time = 0;
+let timerInterval;
+
+const data = {
+    pipes: [
+        {q:"Two pipes fill a tank in 10 & 20 hours. Together?", a:["5 hrs","6 hrs","8 hrs","12 hrs"], c:0},
+        {q:"Pipe fills in 12 hr, leak empties in 6 hr. Net?", a:["12hr","Never fills","24hr","6hr"], c:1},
+        {q:"Fill in 4 & 6 hrs. Together?", a:["2.4hr","3hr","4hr","5hr"], c:0},
+        {q:"A fills 3hr, B fills 2hr. Together?", a:["1hr12m","2hr","3hr","1hr30m"], c:0},
+        {q:"A10,B20,C30. Together?", a:["5hr","6hr","8hr","4hr"], c:0},
+        {q:"Pipe8hr, leak16hr. Net?", a:["8hr","16hr","24hr","Never"], c:2},
+        {q:"Two pipes 5 & 10 hr?", a:["3.3hr","4hr","2hr","7hr"], c:0},
+        {q:"A2hr,B3hr?", a:["1hr12m","2hr","3hr","1hr30m"], c:0},
+        {q:"A12hr,B4hr?", a:["3hr","2hr","8hr","6hr"], c:3},
+        {q:"A15hr,B30hr(empty)?", a:["45hr","30hr","Never","15hr"], c:2}
+    ],
+
+    prob: [
+        {q:"Probability of head in coin?", a:["1/2","1/3","1/4","2/3"], c:0},
+        {q:"Total outcomes 2 dice?", a:["12","24","36","6"], c:2},
+        {q:"Probability of rolling 5?", a:["1/6","1/3","1/2","1/5"], c:0},
+        {q:"Bag 3 red 2 blue. Pick red?", a:["3/5","2/5","1/5","4/5"], c:0},
+        {q:"Pick vowel(A-E)?", a:["3/5","4/5","1/5","2/5"], c:0},
+        {q:">50% probability?", a:["0.25","0.4","0.6","0.3"], c:2},
+        {q:"Probability can't be?", a:["0","1","2","0.5"], c:2},
+        {q:"Even number on dice?", a:["1/3","1/2","2/3","1/6"], c:1},
+        {q:"Prime <10?", a:["3/9","4/9","5/9","6/9"], c:1},
+        {q:"Impossible event?", a:["1","0","0.5","Undefined"], c:1}
+    ],
+
+    age: [
+        {q:"Father30,Son5,diff after10yrs?", a:["25","30","35","20"], c:0},
+        {q:"A24,B12 ratio?", a:["2:1","3:1","4:1","1:2"], c:0},
+        {q:"Age can't be?", a:["Negative","Positive","Zero","Natural"], c:0},
+        {q:"Sum ages 40, one is 10. Other?", a:["10","20","30","40"], c:1},
+        {q:"A=30, A=3×B. B?", a:["10","15","20","25"], c:0},
+        {q:"Age gap?", a:["Same","Varies","Increases","Decreases"], c:0},
+        {q:"A20 now, after 5?", a:["25","20","15","30"], c:0},
+        {q:"A10,B20 ratio after10yr?", a:["1:2","2:3","1:1","3:2"], c:0},
+        {q:"Youngest age?", a:["0","1","2","3"], c:0},
+        {q:"Age increases?", a:["Daily","Yearly","Hourly","Not"], c:1}
+    ],
+
+    profit: [
+        {q:"Profit formula?", a:["SP-CP","CP-SP","SP×CP","SP+CP"], c:0},
+        {q:"Loss formula?", a:["CP-SP","SP-CP","SP×CP","None"], c:0},
+        {q:"Profit when?", a:["SP>CP","CP>SP","SP=CP","None"], c:0},
+        {q:"%Profit?", a:["(P/CP)*100","(CP/P)*100","(SP/CP)*10","None"], c:0},
+        {q:"SP1000,CP800 profit?", a:["200","100","150","50"], c:0},
+        {q:"CP500,Loss100 SP?", a:["400","600","300","700"], c:0},
+        {q:"CP200,Profit50% SP?", a:["300","250","200","150"], c:0},
+        {q:"Loss when?", a:["SP<CP","SP>CP","Equal","None"], c:0},
+        {q:"No profit loss?", a:["CP=SP","CP>SP","SP>CP","None"], c:0},
+        {q:"Profit% can't be?", a:["100%","200%","300%","Negative"], c:3}
+    ]
+};
+
+function enterUser() {
+    let n = document.getElementById("userName").value.trim();
+    if (!n) { alert("Please enter your name"); return; }
+    username = n;
+    alert("Welcome " + username + "! Select a category.");
+}
+
+function startQuiz(cat) {
+    if (!username) { alert("Enter name first!"); return; }
+
+    category = cat;
+
+    document.getElementById("homePage").style.display = "none";
+    document.getElementById("quizPage").style.display = "block";
+
+    document.getElementById("catTitle").innerText = cat.toUpperCase();
+
+    startTimer();
+    loadQ();
+}
+
+function loadQ() {
+    const q = data[category][qIndex];
+
+    document.getElementById("qNo").innerText = "Question " + (qIndex + 1) + "/10";
+    document.getElementById("questionText").innerText = q.q;
+
+    const optBox = document.getElementById("options");
+    optBox.innerHTML = "";
+
+    q.a.forEach((text, i) => {
+        const btn = document.createElement("button");
+        btn.innerText = text;
+        btn.className = "option-btn";
+        btn.onclick = () => check(i);
+        optBox.appendChild(btn);
+    });
+}
+
+function check(i) {
+    const q = data[category][qIndex];
+    attempt++;
+
+    if (i === q.c) {
+        score++;
+        correct++;
+    } else wrong++;
+
+    document.getElementById("scoreBox").innerText = "Score: " + score;
+}
+
+function nextQ() {
+    if (qIndex < 9) {
+        qIndex++;
+        loadQ();
+    } else finish();
+}
+
+function startTimer() {
+    timerInterval = setInterval(() => {
+        time++;
+        document.getElementById("timer").innerText = "Time: " + time + "s";
+    }, 1000);
+}
+
+function finish() {
+    clearInterval(timerInterval);
+
+    document.getElementById("quizPage").style.display = "none";
+    document.getElementById("resultPage").style.display = "block";
+
+    document.getElementById("rName").innerText = username;
+    document.getElementById("rTime").innerText = time;
+    document.getElementById("rAttempt").innerText = attempt;
+    document.getElementById("rCorrect").innerText = correct;
+    document.getElementById("rWrong").innerText = wrong;
+    document.getElementById("rPercent").innerText = ((correct / 10) * 100).toFixed(2);
+}
+</script>
+
+</body>
+</html>
