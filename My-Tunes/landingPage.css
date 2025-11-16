@@ -1,0 +1,60 @@
+/* a simple reset to make alignment easier */
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    font-family: Arial, sans-serif;
+}
+.navbar .container {
+    display: flex; /*This is the key! */
+    justify-content: space-between; /* Pushes logo and links apart */
+    align-items: center; /* vertically centers them */
+    padding: 20px;
+    background: #333;
+    color: #fff;
+}
+.navbar .nav-links {
+    display: flex;  /* makes the list item horizontal */
+    list-style: none; /* REmove bullet points */
+}
+
+.navbar .nav-links li {
+    margin-left: 20px; /* Space btw links */
+}
+.navbar .nav-links a {
+    color: #fff;
+    text-decoration: none;
+}
+.hero {
+    /* This creates a big background */
+    background: url('hero-image.jpg') center center/cover;
+    height: 400px;
+    color: #fff;
+
+    /* This center the content */
+    display: flex;
+    flex-direction: column;  /* stacks item vertically  */
+    justify-content: center; /* centr vertically  */
+    align-items: center;  /* center horizontally */
+    text-align: center;  /* center the text inside the items */
+}
+
+.hero h2 {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+.hero p {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+}
+
+.btn-primary {
+    background: #ff6600;
+    color: #fff;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+}
